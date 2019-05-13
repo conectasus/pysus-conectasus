@@ -12,7 +12,7 @@ from simpledbf import Dbf5
 from pysus.utilities._readdbc import ffi, lib
 from rpy2 import robjects
 from rpy2.robjects import r, pandas2ri
-
+from rpy2.robjects.conversion import localconverter
 
 def read_dbc(filename, encoding='utf-8'):
     """
@@ -22,24 +22,39 @@ def read_dbc(filename, encoding='utf-8'):
     :param encoding: encoding of the data
     :return: Pandas Dataframe.
     """
-    #if isinstance(filename, str):
-    #    filename = filename.encode()
-    #with NamedTemporaryFile(delete=False) as tf:
-    #    dbc2dbf(filename, tf.name.encode())
-    #    dbf = Dbf5(tf.name,codec=encoding)
-    #    df = dbf.to_dataframe()
-    #os.unlink(tf.name)
-
-    pandas2ri.activate()
-    function = '''
-    library(devtools)
-    library(read.dbc)
-    df <- read.dbc("%s")
-    ''' % filename
-    robjects.r(function)
-    df = robjects.globalenv['df']
-
+    '''
+    if isinstance(filename, str):
+        filename = filename.encode()
+    with NamedTemporaryFile(delete=False) as tf:
+        dbc2dbf(filename, tf.name.encode())
+        dbf = Dbf5(tf.name,codec=encoding)
+    df = dbf.to_dataframe()
     return df
+    os.unlink(tf.name)
+    '''
+    if filename[0:2].upper() == 'RD':
+        if isinstance(filename, str):
+            filename = filename.encode()
+        with NamedTemporaryFile(delete=False) as tf:
+            dbc2dbf(filename, tf.name.encode())
+            dbf = Dbf5(tf.name, codec=encoding)
+        df = dbf.to_dataframe()
+        os.unlink(tf.name)
+        return df
+
+
+    else:
+        pandas2ri.activate()
+        function = '''
+        library(devtools)
+        library(read.dbc)
+        df <- read.dbc("%s")
+        ''' % filename
+        if filename[0:2].upper()=='BI':
+            function+='\ndf$CNS_PAC <- NULL'
+        robjects.r(function)
+        df = robjects.globalenv['df']
+        return df
 
 
 def dbc2dbf(infile, outfile):
@@ -56,8 +71,5 @@ def dbc2dbf(infile, outfile):
     q = ffi.new('char[]', os.path.abspath(outfile))
 
     lib.dbc2dbf([p], [q])
-
-    print(outfile)
-
 
 
