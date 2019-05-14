@@ -12,7 +12,7 @@ from dbfread import DBF
 import pandas as pd
 from pysus.online_data import CACHEPATH
 
-def create_parquet(state: str, year: int, month: int, cache: bool =True):
+def create_parquet(state: str, year: int, month: int,tipo_dados: str ,cache: bool =False):
     """
     Download SIH records for state year and month and create cache 
     :param month: 1 to 12
@@ -37,24 +37,26 @@ def create_parquet(state: str, year: int, month: int, cache: bool =True):
         fname = 'PA{}{}{}.dbc'.format(state, str(year2).zfill(2), month)
         fname2 = 'BI{}{}{}.dbc'.format(state, str(year2).zfill(2), month)
     # Check in Cache
-    cachefile = os.path.join('/dados/SIA/PA/', 'SIA_' + fname.split('.')[0] + '_.parquet')
-    cachefile2 = os.path.join('/dados/SIA/BI/', 'SIA_' + fname2.split('.')[0] + '_.parquet')
+    cachefile = os.path.join('/home/lucasreis/pysus/', 'SIA_' + fname.split('.')[0] + '_.parquet')
+    cachefile2 = os.path.join('/home/lucasreis/pysus/', 'SIA_' + fname2.split('.')[0] + '_.parquet')
     if not cache:
-        df = _fetch_file(fname, ftp, ftype)
-        df.to_parquet(cachefile)
-        df = None
-        df = _fetch_file(fname2, ftp, ftype)
-        df.to_parquet(cachefile2)
-        df = None
+        if tipo_dados=='PA':
+            df = _fetch_file(fname, ftp, ftype,cachefile)
+            df.to_parquet(cachefile)
+            df = None
+        if tipo_dados=='BI':
+            df2 = _fetch_file(fname2, ftp, ftype,cachefile2)
+            df2.to_parquet(cachefile2)
+            df2 = None
     else:
         if not os.path.exists(cachefile):
             df = _fetch_file(fname, ftp, ftype)
             df.to_parquet(cachefile)
             df = None
         if not os.path.exists(cachefile2):
-            df = _fetch_file(fname2, ftp, ftype)
-            df.to_parquet(cachefile2)
-            df = None
+            df2 = _fetch_file(fname2, ftp, ftype)
+            df2.to_parquet(cachefile2)
+            df2 = None
 
 def download(state: str, year: int, month: int, cache: bool =True) -> object:
     """
@@ -86,27 +88,30 @@ def download(state: str, year: int, month: int, cache: bool =True) -> object:
         df = pd.read_parquet(cachefile)
     else:
         df = _fetch_file(fname, ftp, ftype)
-        if cache:
-            df.to_parquet(cachefile)
+
     if fname2 is not None:
-        cachefile2 = os.path.join(CACHEPATH, 'SIA_' + fname2.split('.')[0] + '_.parquet')
+        cachefile2 = os.path.join(Path.home(),'pysus', 'SIA_' + fname2.split('.')[0] + '_.parquet')
         if os.path.exists(cachefile2):  # reads from cache
             df2 = pd.read_parquet(cachefile2)
         else:  # fetches from DataSUS
             try:
                 df2 = _fetch_file(fname2, ftp, ftype)
-                if cache:  #saves to cache
-                    df2.to_parquet(cachefile2)
             except Exception as e:
                 df2 = None
                 print(e)
+    if cache:
+        df.to_parquet(cachefile)
+        df2.to_parquet(cachefile2)
     else:
         df2 = None
+        if cache:
+            df.to_parquet(cachefile)
+
 
     return df, df2
 
 
-def _fetch_file(fname, ftp, ftype):
+def _fetch_file(fname, ftp, ftype,cachefile:str=None):
     """
     Does the FTP fetching.
     :param fname: file name
@@ -123,7 +128,7 @@ def _fetch_file(fname, ftp, ftype):
         except:
             raise Exception("File {} not available".format(fname))
     if ftype == 'DBC':
-        df = read_dbc(fname, encoding='iso-8859-1')
+        df = read_dbc(fname,cachefile, encoding='iso-8859-1', )
     elif ftype == 'DBF':
         dbf = DBF(fname, encoding='iso-8859-1')
         df = pd.DataFrame(list(dbf))
