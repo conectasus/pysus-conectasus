@@ -37,7 +37,7 @@ def create_parquet(state: str, year: int, month: int, cache: bool=False, tipo_da
         fname = '{}{}{}{}.dbc'.format(tipo_dado, state, str(year2).zfill(2), month)
     cachefile = os.path.join('/dados/SIH',tipo_dado, 'SIH_' + fname.split('.')[0] + '_.parquet')
     if not cache:
-        df = _fetch_file(fname, ftp, ftype)
+        df = _fetch_file(fname, ftp, ftype,cachefile)
         df.to_parquet(cachefile)
         df = None
     else:
@@ -73,20 +73,20 @@ def download(state: str, year: int, month: int, cache: bool=True, tipo_dado='RD'
     if os.path.exists(cachefile):
         df = pd.read_parquet(cachefile)
         return df
-    df = _fetch_file(fname, ftp, ftype)
+    df = _fetch_file(fname, ftp, ftype,cachefile)
     if cache:
         df.to_parquet(cachefile)
     return df
 
 
-def _fetch_file(fname, ftp, ftype):
+def _fetch_file(fname, ftp, ftype, cachefile:str=None):
     print("Downloading {}...".format(fname))
     try:
         ftp.retrbinary('RETR {}'.format(fname), open(fname, 'wb').write)
     except:
         raise Exception("File {} not available".format(fname))
     if ftype == 'DBC':
-        df = read_dbc(fname, encoding='iso-8859-3',cachefile=None)
+        df = read_dbc(fname, encoding='iso-8859-3',cachefile=cachefile)
     elif ftype == 'DBF':
         dbf = DBF(fname, encoding='iso-8859-1')
         df = pd.DataFrame(list(dbf))
