@@ -99,9 +99,15 @@ def download(state: str, year: int, month: int,tipo_dados: str, cache: bool =Tru
             df = _fetch_file(fname, ftp, ftype)
             df.to_parquet(cachefile)
             return df
+        else:
+            df = pd.read_parquet(cachefile)
+            return df
         if not os.path.exists(cachefile2):
             df2 = _fetch_file(fname2, ftp, ftype)
             df2.to_parquet(cachefile2)
+            return df2
+        else:
+            df2 = pd.read_parquet(cachefile2)
             return df2
 
 

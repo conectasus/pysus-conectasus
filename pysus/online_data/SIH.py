@@ -69,7 +69,7 @@ def download(state: str, year: int, month: int, cache: bool=True, tipo_dado='RD'
         ftype = 'DBC'
         ftp.cwd('/dissemin/publicos/SIHSUS/200801_/Dados'.format(year))
         fname = '{}{}{}{}.dbc'.format(tipo_dado, state, str(year2).zfill(2), month)
-    cachefile = os.path.join('/dados/SIH',tipo_dado, 'SIH_' + fname.split('.')[0] + '_.parquet')
+    cachefile = os.path.join('/home/lucasreis/pysus','SIH_' + fname.split('.')[0] + '_.parquet')
     if not cache:
         df = _fetch_file(fname, ftp, ftype,cachefile)
         df.to_parquet(cachefile)
@@ -77,6 +77,9 @@ def download(state: str, year: int, month: int, cache: bool=True, tipo_dado='RD'
         if not os.path.exists(cachefile):
             df = _fetch_file(fname, ftp, ftype)
             df.to_parquet(cachefile)
+        else:
+            df = pd.read_parquet(cachefile)
+            return df
     return df
 
 def _fetch_file(fname, ftp, ftype, cachefile:str=None):
