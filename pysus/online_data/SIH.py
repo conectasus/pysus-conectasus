@@ -12,7 +12,7 @@ from pysus.online_data import CACHEPATH
 from dbfread import DBF
 import pandas as pd
 
-def create_parquet(state: str, year: int, month: int, cache: bool=True, tipo_dado='RD') -> object:
+def create_parquet(state: str, year: int, month: int, cache: bool=False, tipo_dado='RD') -> object:
     """
     Download SIH records for state year and month and returns dataframe
     :param month: 1 to 12
@@ -35,7 +35,7 @@ def create_parquet(state: str, year: int, month: int, cache: bool=True, tipo_dad
         ftype = 'DBC'
         ftp.cwd('/dissemin/publicos/SIHSUS/200801_/Dados'.format(year))
         fname = '{}{}{}{}.dbc'.format(tipo_dado, state, str(year2).zfill(2), month)
-    cachefile = os.path.join('/dados/SIH/', 'SIH_' + fname.split('.')[0] + '_.parquet')
+    cachefile = os.path.join('/dados/SIH',tipo_dado, 'SIH_' + fname.split('.')[0] + '_.parquet')
     if not cache:
         df = _fetch_file(fname, ftp, ftype)
         df.to_parquet(cachefile)
@@ -67,7 +67,7 @@ def download(state: str, year: int, month: int, cache: bool=True, tipo_dado='RD'
         fname = '{}{}{}{}.dbc'.format(tipo_dado, state, year2, month)
     if year >= 2008:
         ftype = 'DBC'
-        ftp.cwd('/dissemin/publicos/SIHSUS/200801_/Dados'.format(year))
+        ftp.cwd('/dissemin/publicos/SIHSUS/200801_/Dados'.format(ty))
         fname = '{}{}{}{}.dbc'.format(tipo_dado, state, str(year2).zfill(2), month)
     cachefile = os.path.join(CACHEPATH, 'SIH_' + fname.split('.')[0] + '_.parquet')
     if os.path.exists(cachefile):
@@ -80,12 +80,13 @@ def download(state: str, year: int, month: int, cache: bool=True, tipo_dado='RD'
 
 
 def _fetch_file(fname, ftp, ftype):
+    print("Downloading {}...".format(fname))
     try:
         ftp.retrbinary('RETR {}'.format(fname), open(fname, 'wb').write)
     except:
         raise Exception("File {} not available".format(fname))
     if ftype == 'DBC':
-        df = read_dbc(fname, encoding='iso-8859-1')
+        df = read_dbc(fname, encoding='iso-8859-3',cachefile=None)
     elif ftype == 'DBF':
         dbf = DBF(fname, encoding='iso-8859-1')
         df = pd.DataFrame(list(dbf))
