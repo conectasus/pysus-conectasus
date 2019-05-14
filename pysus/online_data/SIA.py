@@ -37,8 +37,8 @@ def create_parquet(state: str, year: int, month: int,tipo_dados: str ,cache: boo
         fname = 'PA{}{}{}.dbc'.format(state, str(year2).zfill(2), month)
         fname2 = 'BI{}{}{}.dbc'.format(state, str(year2).zfill(2), month)
     # Check in Cache
-    cachefile = os.path.join('/dados/SIA/PA', 'SIA_' + fname.split('.')[0] + '_.parquet')
-    cachefile2 = os.path.join('/dados/SIA/BI', 'SIA_' + fname2.split('.')[0] + '_.parquet')
+    cachefile = os.path.join('/dados/SIA',tipo_dado,  'SIA_' + fname.split('.')[0] + '_.parquet')
+    cachefile2 = os.path.join('/dados/SIA',tipo_dado, 'SIA_' + fname2.split('.')[0] + '_.parquet')
     if not cache:
         if tipo_dados=='PA':
             df = _fetch_file(fname, ftp, ftype,cachefile)
@@ -58,7 +58,7 @@ def create_parquet(state: str, year: int, month: int,tipo_dados: str ,cache: boo
             df2.to_parquet(cachefile2)
             df2 = None
 
-def download(state: str, year: int, month: int, cache: bool =True) -> object:
+def download(state: str, year: int, month: int,tipo_dados: str, cache: bool =True) -> object:
     """
     Download SIH records for state year and month and returns dataframe
     :param month: 1 to 12
@@ -83,32 +83,32 @@ def download(state: str, year: int, month: int, cache: bool =True) -> object:
         fname = 'PA{}{}{}.dbc'.format(state, str(year2).zfill(2), month)
         fname2 = 'BI{}{}{}.dbc'.format(state, str(year2).zfill(2), month)
     # Check in Cache
-    cachefile = os.path.join(CACHEPATH, 'SIA_' + fname.split('.')[0] + '_.parquet')
-    if os.path.exists(cachefile):
-        df = pd.read_parquet(cachefile)
-    else:
-        df = _fetch_file(fname, ftp, ftype)
-
-    if fname2 is not None:
-        cachefile2 = os.path.join(Path.home(),'pysus', 'SIA_' + fname2.split('.')[0] + '_.parquet')
-        if os.path.exists(cachefile2):  # reads from cache
-            df2 = pd.read_parquet(cachefile2)
-        else:  # fetches from DataSUS
-            try:
-                df2 = _fetch_file(fname2, ftp, ftype)
-            except Exception as e:
-                df2 = None
-                print(e)
-    if cache:
-        df.to_parquet(cachefile)
-        df2.to_parquet(cachefile2)
-    else:
-        df2 = None
-        if cache:
+    cachefile = os.path.join('/dados/SIA',tipo_dado, 'SIA_' + fname.split('.')[0] + '_.parquet')
+    cachefile2 = os.path.join('/dados/SIA',tipo_dado, 'SIA_' + fname2.split('.')[0] + '_.parquet')
+    if not cache:
+        if tipo_dados=='PA':
+            df = _fetch_file(fname, ftp, ftype,cachefile)
             df.to_parquet(cachefile)
-
-
-    return df, df2
+            return df
+        if tipo_dados=='BI':
+            df2 = _fetch_file(fname2, ftp, ftype,cachefile2)
+            df2.to_parquet(cachefile2)
+            return df2
+    else:
+        if not os.path.exists(cachefile):
+            df = _fetch_file(fname, ftp, ftype)
+            df.to_parquet(cachefile)
+            return df
+        else:
+            df = pd.read_parquet(cachefile)
+            return df
+        if not os.path.exists(cachefile2):
+            df2 = _fetch_file(fname2, ftp, ftype)
+            df2.to_parquet(cachefile2)
+            return df2
+        else:
+            df2 = pd.read_parquet(cachefile2)
+            return df2
 
 
 def _fetch_file(fname, ftp, ftype,cachefile:str=None):
