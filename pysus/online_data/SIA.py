@@ -58,7 +58,7 @@ def create_parquet(state: str, year: int, month: int,tipo_dados: str ,cache: boo
             df2.to_parquet(cachefile2)
             df2 = None
 
-def download(state: str, year: int, month: int, cache: bool =True) -> object:
+def download(state: str, year: int, month: int,tipo_dados: str, cache: bool =True) -> object:
     """
     Download SIH records for state year and month and returns dataframe
     :param month: 1 to 12
