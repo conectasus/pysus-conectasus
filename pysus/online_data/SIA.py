@@ -12,7 +12,7 @@ from dbfread import DBF
 import pandas as pd
 from pysus.online_data import CACHEPATH
 
-def create_parquet(state: str, year: int, month: int,tipo_dados: str ,cache: bool =False):
+def create_parquet(state: str, year: int, month: int,tipo_dado: str ,cache: bool =False):
     """
     Download SIH records for state year and month and create cache 
     :param month: 1 to 12
@@ -40,11 +40,11 @@ def create_parquet(state: str, year: int, month: int,tipo_dados: str ,cache: boo
     cachefile = os.path.join('/dados/SIA',tipo_dado,  'SIA_' + fname.split('.')[0] + '_.parquet')
     cachefile2 = os.path.join('/dados/SIA',tipo_dado, 'SIA_' + fname2.split('.')[0] + '_.parquet')
     if not cache:
-        if tipo_dados=='PA':
+        if tipo_dado=='PA':
             df = _fetch_file(fname, ftp, ftype,cachefile)
             df.to_parquet(cachefile)
             df = None
-        if tipo_dados=='BI':
+        if tipo_dado=='BI':
             df2 = _fetch_file(fname2, ftp, ftype,cachefile2)
             df2.to_parquet(cachefile2)
             df2 = None
@@ -58,7 +58,7 @@ def create_parquet(state: str, year: int, month: int,tipo_dados: str ,cache: boo
             df2.to_parquet(cachefile2)
             df2 = None
 
-def download(state: str, year: int, month: int,tipo_dados: str, cache: bool =True) -> object:
+def download(state: str, year: int, month: int,tipo_dado: str, cache: bool =True) -> object:
     """
     Download SIH records for state year and month and returns dataframe
     :param month: 1 to 12
@@ -86,11 +86,11 @@ def download(state: str, year: int, month: int,tipo_dados: str, cache: bool =Tru
     cachefile = os.path.join('/dados/SIA',tipo_dado, 'SIA_' + fname.split('.')[0] + '_.parquet')
     cachefile2 = os.path.join('/dados/SIA',tipo_dado, 'SIA_' + fname2.split('.')[0] + '_.parquet')
     if not cache:
-        if tipo_dados=='PA':
+        if tipo_dado=='PA':
             df = _fetch_file(fname, ftp, ftype,cachefile)
             df.to_parquet(cachefile)
             return df
-        if tipo_dados=='BI':
+        if tipo_dado=='BI':
             df2 = _fetch_file(fname2, ftp, ftype,cachefile2)
             df2.to_parquet(cachefile2)
             return df2
