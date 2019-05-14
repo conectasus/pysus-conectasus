@@ -37,8 +37,8 @@ def create_parquet(state: str, year: int, month: int,tipo_dados: str ,cache: boo
         fname = 'PA{}{}{}.dbc'.format(state, str(year2).zfill(2), month)
         fname2 = 'BI{}{}{}.dbc'.format(state, str(year2).zfill(2), month)
     # Check in Cache
-    cachefile = os.path.join('/home/lucasreis/pysus/', 'SIA_' + fname.split('.')[0] + '_.parquet')
-    cachefile2 = os.path.join('/home/lucasreis/pysus/', 'SIA_' + fname2.split('.')[0] + '_.parquet')
+    cachefile = os.path.join('/dados/SIA/PA', 'SIA_' + fname.split('.')[0] + '_.parquet')
+    cachefile2 = os.path.join('/dados/SIA/BI', 'SIA_' + fname2.split('.')[0] + '_.parquet')
     if not cache:
         if tipo_dados=='PA':
             df = _fetch_file(fname, ftp, ftype,cachefile)
