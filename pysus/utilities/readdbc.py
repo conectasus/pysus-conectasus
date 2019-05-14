@@ -8,11 +8,7 @@ from tempfile import NamedTemporaryFile
 from io import BytesIO
 import pandas as pd
 from dbfread import DBF
-from simpledbf import Dbf5
 from pysus.utilities._readdbc import ffi, lib
-from rpy2 import robjects
-from rpy2.robjects import r, pandas2ri
-from rpy2.robjects.conversion import localconverter
 import pyarrow as pa
 import pyarrow.parquet as pq
 
